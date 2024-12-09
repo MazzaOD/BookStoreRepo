@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const SearchBooks = () => {
+const SearchBooks = ({ onAddToCart }) => {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('title');
   const [results, setResults] = useState([]);
 
   const handleSearch = async () => {
-    const response = await axios.get(
-      `http://localhost:5000/api/books/search?query=${query}&filter=${filter}`
-    );
-    setResults(response.data);
+    if (!query) return alert('Please enter a search term!');
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/api/books/search?query=${query}&filter=${filter}`
+      );
+      setResults(response.data);
+    } catch (error) {
+      alert('Failed to fetch books. Please try again.');
+    }
   };
 
   return (
@@ -30,8 +35,8 @@ const SearchBooks = () => {
           className="p-2 border rounded-md shadow-sm"
         >
           <option value="title">Title</option>
-          <option value="author">Author</option>
           <option value="category">Genre</option>
+          <option value="author">Author</option>
         </select>
         <button
           onClick={handleSearch}
@@ -44,10 +49,19 @@ const SearchBooks = () => {
         {results.map((book) => (
           <li key={book._id} className="py-4 flex justify-between items-center">
             <div>
-              <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">{book.title}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{book.author}</p>
+              <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                {book.title}
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">by {book.author}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Price: ${book.price}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Stock: {book.stock}</p>
             </div>
-            <p className="text-blue-600 dark:text-blue-400 font-medium">${book.price}</p>
+            <button
+              onClick={() => onAddToCart(book)}
+              className="bg-green-600 text-white px-4 py-2 rounded-md shadow hover:bg-green-700 transition"
+            >
+              Add to Cart
+            </button>
           </li>
         ))}
       </ul>

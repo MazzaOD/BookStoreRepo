@@ -24,7 +24,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Update a book
+// Update a book by ID
 router.put('/:id', async (req, res) => {
   try {
     const updatedBook = await Book.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -34,7 +34,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Delete a book
+// Delete a book by ID
 router.delete('/:id', async (req, res) => {
   try {
     await Book.findByIdAndDelete(req.params.id);
@@ -43,6 +43,7 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
 
 router.post('/upload', async (req, res) => {
   try {
@@ -59,6 +60,32 @@ router.get('/search', async (req, res) => {
   try {
     const books = await Book.find({ [filter]: new RegExp(query, 'i') }); // Case-insensitive search
     res.status(200).json(books);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Handle checkout: Deduct stock based on cart items
+router.post('/checkout', async (req, res) => {
+  const { cartItems } = req.body;
+
+  try {
+    for (const item of cartItems) {
+      const book = await Book.findById(item._id);
+      if (!book) {
+        return res.status(404).json({ message: `Book with ID ${item._id} not found` });
+      }
+      if (book.stock < item.quantity) {
+        return res
+          .status(400)
+          .json({ message: `Not enough stock for book: ${book.title}` });
+      }
+
+      book.stock -= item.quantity;
+      await book.save();
+    }
+
+    res.status(200).json({ message: 'Checkout successful!' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

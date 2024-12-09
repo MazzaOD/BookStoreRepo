@@ -10,10 +10,15 @@ const EditBook = ({ book, onSave }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios.put(`http://localhost:5000/api/books/${book._id}`, formData).then(() => {
-      alert('Book updated successfully!');
-      onSave();
-    });
+    axios
+      .put(`http://localhost:5000/api/books/${book._id}`, formData)
+      .then(() => {
+        alert('Book updated successfully!');
+        onSave(); // Trigger parent to refresh data or switch pages
+      })
+      .catch((error) => {
+        console.error('Error updating book:', error);
+      });
   };
 
   return (
@@ -22,7 +27,9 @@ const EditBook = ({ book, onSave }) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         {['title', 'isbn', 'author', 'category', 'price', 'stock'].map((field) => (
           <div key={field}>
-            <label className="block text-gray-600 dark:text-gray-400 font-medium capitalize">{field}</label>
+            <label className="block text-gray-600 dark:text-gray-400 font-medium capitalize">
+              {field}
+            </label>
             <input
               name={field}
               placeholder={field}
